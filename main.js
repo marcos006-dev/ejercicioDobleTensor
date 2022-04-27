@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // entrenar el modelo
   await modelo.fit(variableY, variableX, {
-    epochs: 100,
+    epochs: 500,
     callbacks: {
       onEpochEnd: (epoch, logs) => {
         chart.series[0].addPoint(logs.loss);
