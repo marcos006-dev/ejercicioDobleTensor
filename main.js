@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     tf.layers.dense({ inputShape: [1], units: 6, activation: 'relu' })
   );
   modelo.add(tf.layers.dense({ units: 3 }));
-  modelo.add(tf.layers.dense({ units: 1 }));
+  // modelo.add(tf.layers.dense({ units: 1 }));
   // modelo.add(tf.layers.dense({ units: 1, inputShape: [1] }));
 
   // compilar el modelo
