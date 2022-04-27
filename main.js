@@ -1,41 +1,97 @@
 import * as tf from '@tensorflow/tfjs';
+const btnCalcular = document.getElementById('btnCalcular');
+const estadoModelo = document.getElementById('estadoModelo');
+const numeroEscalar = document.getElementById('numeroEscalar');
 
-// definir el modelo
+let modelo;
 
-const modelo = tf.sequential();
+document.addEventListener('DOMContentLoaded', async () => {
+  estadoModelo.innerHTML = `
+  <div class="alert alert-warning" role="alert">
+    Entrenando el modelo...
+  </div>
+  `;
 
-// definir las capas
+  // declarar constante para el grafico
+  const chart = new Highcharts.chart('funcionPerdida', {
+    title: {
+      text: 'Datos de la función de perdida',
+    },
+    xAxis: {
+      categories: 0,
+    },
+    series: [
+      {
+        name: 'Datos de la función de perdida',
+        data: 0,
+      },
+    ],
+    credits: {
+      enabled: false,
+    },
+  });
+  // definir el modelo
+  modelo = tf.sequential();
 
-modelo.add(tf.layers.dense({ units: 1, inputShape: [1] }));
-modelo.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+  // definir las capas
 
-// compilar el modelo
+  modelo.add(
+    tf.layers.dense({ inputShape: [1], units: 6, activation: 'relu' })
+  );
+  modelo.add(tf.layers.dense({ units: 3 }));
+  modelo.add(tf.layers.dense({ units: 1 }));
+  // modelo.add(tf.layers.dense({ units: 1, inputShape: [1] }));
 
-modelo.compile({ loss: 'meanSquaredError', optimizer: 'sgd' });
+  // compilar el modelo
 
-// definir los datos de entrenamiento (tensores)
+  modelo.compile({ loss: 'meanSquaredError', optimizer: 'sgd' });
 
-const variableY = tf.tensor1d([1, 3, 5], 'int32');
-const variableX = tf.tensor1d([2, 4, 6], 'int32');
+  // definir los datos de entrenamiento (tensores)
 
-// entrenar el modelo
+  const variableY = tf.tensor1d([1, 2, 3, 4], 'int32');
+  const variableX = tf.tensor1d([2, 4, 6, 8], 'int32');
 
-modelo.fit(variableY, variableX, { epochs: 500 }).then(() => {
-  // predecir
+  // entrenar el modelo
+  await modelo.fit(variableY, variableX, {
+    epochs: 100,
+    callbacks: {
+      onEpochEnd: (epoch, logs) => {
+        chart.series[0].addPoint(logs.loss);
+      },
+    },
+  });
 
-  modelo.predict(tf.tensor1d([1, 2, 3, 6, 5, 10])).print();
+  estadoModelo.innerHTML = `
+  <div class="alert alert-success" role="alert">
+    Modelo Entrenado
+  </div>
+  `;
+
+  btnCalcular.removeAttribute('disabled');
+  numeroEscalar.removeAttribute('disabled');
 });
 
-// resultados del modelo ingresados con los valores de Y
-// [[1.9615195 ],
-//  [2.975291  ],
-//  [3.9890623 ],
-//  [7.0303764 ],
-//  [6.0166049 ],
-//  [11.0854626]]
+btnCalcular.addEventListener('click', async () => {
+  const numero = parseInt(numeroEscalar.value);
+
+  // modelo.predict(tf.tensor1d([numero])).print();
+
+  estadoModelo.innerHTML = `
+  <div class="alert alert-info" role="alert">
+    Predicción del modelo para el número ${numero} =>
+    ${modelo.predict(tf.tensor1d([numero])).dataSync()}
+  </div>
+  `;
+});
+// resultados del modelo ingresados con los valores de X
+// Tensor
+//[[4.0038075],
+//[7.9959173],
+//[11.9880247]]
 
 // valores de x sin reemplazar
-// [2, ?, 4, ?, 6, ?]
+// [2,4,6]
 
 // valores de x reemplazados con los datos arrojados del modelo
-// [2,3,4,7,6,11]
+// [4,8,12]
+/*Insertamos los valores del eje vertical en un array*/
